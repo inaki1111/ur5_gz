@@ -15,7 +15,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "description_file",
             default_value=PathJoinSubstitution(
-                [FindPackageShare("robot_description"), "urdf", "ur5_robotiq85_gripper.xacro"]
+                [FindPackageShare("moveit_ur_config"), "config", "ur5.urdf.xacro"]
             ),
             description="Robot description.",
         )
@@ -61,7 +61,7 @@ def generate_launch_description():
 
     # Convertir XACRO a URDF antes de pasarlo a Gazebo
     robot_description_file = PathJoinSubstitution([
-        FindPackageShare("robot_description"), "urdf", "ur5_robotiq85_gripper.xacro"
+        FindPackageShare("moveit_ur_config"), "config", "ur5.urdf.xacro"
     ])
     robot_description_content = Command([
         TextSubstitution(text="xacro "), robot_description_file
@@ -84,12 +84,26 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
-            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock]",
+            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model]",
         ],
         output="screen",
     )
 
+    # Agregar el spawner de joint_state_broadcaster antes de los otros controladores
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_state_broadcaster"],
+        output="screen",
+    )
+
     return LaunchDescription(
-        declared_arguments + [moveit_launch, gz_launch_description, gz_spawn_entity, gz_sim_bridge]
+        declared_arguments + [
+            moveit_launch,
+            gz_launch_description,
+            gz_spawn_entity,
+            gz_sim_bridge,
+            joint_state_broadcaster_spawner,
+        ]
     )
