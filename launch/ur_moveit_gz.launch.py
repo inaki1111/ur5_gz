@@ -98,6 +98,14 @@ def generate_launch_description():
         output="screen",
     )
 
+    follow_joint_trajectory_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["follow_joint_trajectory_controller"],
+        output="screen",
+    )
+
+
     return LaunchDescription(
         declared_arguments + [
             moveit_launch,
@@ -105,5 +113,6 @@ def generate_launch_description():
             gz_spawn_entity,
             gz_sim_bridge,
             joint_state_broadcaster_spawner,
+            follow_joint_trajectory_spawner,
         ]
     )
